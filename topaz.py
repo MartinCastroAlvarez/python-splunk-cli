@@ -303,6 +303,7 @@ class Index(object):
 
 class Date(enum.Enum):
     DAYS_30 = "30d"
+    DAYS_15 = "15d"
     DAYS_7 = "7d"
     DAYS_3 = "3d"
     DAYS_1 = "1d"
