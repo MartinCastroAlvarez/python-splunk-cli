@@ -47,7 +47,13 @@ python3 topaz.py --index sandbox --search seagull --start 15m
 <Alert: '2019/04/12 15:51:23 added: 73bbf17361ce ip-10-0-12-123:ecs-pmts5-seagull-31-pmts5-seagull-ba9cdff4c0939b819901:80'>
 <Alert: '    2019/04/12 15:51:23 [INFO] agent: Synced service 'ip-10-0-12-123:ecs-pmts5-seagull-31-pmts5-seagull-ba9cdff4c0939b819901:80''>
 ```
+
 ### Search for startup errors.
 ```
 python3 topaz.py --index sandbox --search startup --start 15m
+```
+
+### Filter messages by log level.
+```
+python3 topaz.py --index sandbox --search startup --start 15m --level ERROR,WARNING
 ```
