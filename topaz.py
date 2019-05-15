@@ -301,7 +301,21 @@ class Index(object):
         raise NotImplementedError(self.__index)
 
 
+class Level(enum.Enum):
+    """
+    Message levels.
+    """
+    INFO = "INFO"
+    WARNING = "WARNING"
+    DEBUG = "DEBUG"
+    ERROR = "ERROR"
+    ALL = "ALL"
+
+
 class Date(enum.Enum):
+    """
+    Search range dates.
+    """
     DAYS_30 = "30d"
     DAYS_15 = "15d"
     DAYS_7 = "7d"
@@ -488,6 +502,7 @@ class Alert(Event):
 
         @raises TypeError: If type of params is invalid.
         """
+        self.level = Level.ERROR
         if not isinstance(data, str):
             raise TypeError(type(data))
         if not isinstance(error, str):
@@ -535,7 +550,7 @@ class Message(Event):
         """
         _text = self.line[21:]
         _text = _text.split()
-        return _text[0]
+        return Level(_text[0])
 
     def _find_tags(self) -> None:
         """
@@ -567,7 +582,7 @@ class Message(Event):
         String serializer.
         """
         return "<Message: {} | {} | {}:{}:{} | '{}'>".format(self.timestamp,
-                                                             self.level,
+                                                             self.level.value,
                                                              self.module,
                                                              self.function,
                                                              self.line_number,
@@ -594,6 +609,7 @@ class Description(object):
         END = "End day such as: 15m."
         INDEX = "Search index name such as: sandbox."
         SEARCH = "Search string payload."
+        LEVEL = "Search messages by level."
 
 
 class Default(object):
@@ -604,6 +620,7 @@ class Default(object):
     END = Date.NOW
     CONFIG_PATH = os.path.join(os.sep, "home", os.getlogin(), ".topaz")
     PROFILE_NAME = "ampush"
+    LEVEL = Level.ALL.value
     INDEX = ''
     SEARCH = ''
 
@@ -613,6 +630,7 @@ def run(index: Description.Search.INDEX=Default.INDEX,
         search: Description.Search.SEARCH=Default.SEARCH,
         start: Description.Search.START=Default.START,
         end: Description.Search.END=Default.END,
+        level: Description.Search.LEVEL=Default.LEVEL,
         debug: Description.Script.DEBUG=False,
         profile_name: Description.Script.PROFILE_NAME=Default.PROFILE_NAME,
         config_path: Description.Script.CONFIG_PATH=Default.CONFIG_PATH):
@@ -634,9 +652,14 @@ def run(index: Description.Search.INDEX=Default.INDEX,
         start = Date(start)
         end = Date(end)
         index = profile.get_index(index)
+        levels = {
+            Level(l).value
+            for l in level.split(",")
+        }
         x = XML()
         x.save(splunk.search(start=start, end=end, search=search, index=index))
         for message in x.get_messages():
-            print(message)
+            if message.level.value in levels or Level.ALL.value in levels:
+                print(message)
     except Exception:
         logger.exception("Report FAILED!")
